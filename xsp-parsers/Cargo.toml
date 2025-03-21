@@ -1,0 +1,7 @@
+[package]
+name = "xsp-parsers"
+edition = "2024"
+
+[dependencies]
+pmaker = { path = "../pmaker" }
+ursa = { path = "../ursa" }
