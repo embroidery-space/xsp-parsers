@@ -66,7 +66,7 @@ impl std::str::FromStr for Symbol {
 pub struct FullStitch {
   pub x: f32,
   pub y: f32,
-  pub palindex: u8,
+  pub palindex: usize,
   pub kind: FullStitchKind,
 }
 
@@ -80,7 +80,7 @@ pub enum FullStitchKind {
 pub struct PartStitch {
   pub x: f32,
   pub y: f32,
-  pub palindex: u8,
+  pub palindex: usize,
   pub direction: PartStitchDirection,
   pub kind: PartStitchKind,
 }
@@ -119,7 +119,7 @@ pub enum PartStitchKind {
 pub struct LineStitch {
   pub x: (f32, f32),
   pub y: (f32, f32),
-  pub palindex: u8,
+  pub palindex: usize,
   pub kind: LineStitchKind,
 }
 
@@ -154,7 +154,7 @@ impl std::str::FromStr for LineStitchKind {
 pub struct NodeStitch {
   pub x: f32,
   pub y: f32,
-  pub palindex: u8,
+  pub palindex: usize,
   pub kind: NodeStitchKind,
 }
 
