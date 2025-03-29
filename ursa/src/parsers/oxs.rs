@@ -286,7 +286,7 @@ fn read_full_stitches<R: io::BufRead>(reader: &mut Reader<R>) -> Result<Vec<Full
         full_stitches.push(FullStitch {
           x: attributes.get("x").unwrap().parse()?,
           y: attributes.get("y").unwrap().parse()?,
-          palindex: attributes.get("palindex").unwrap().parse::<usize>()? - 1,
+          palindex: attributes.get("palindex").unwrap().parse::<u8>()? - 1,
           kind: FullStitchKind::Full,
         });
       }
@@ -343,8 +343,8 @@ fn read_part_stitches<R: io::BufRead>(reader: &mut Reader<R>) -> Result<Vec<Part
           _ => panic!("Unknown part stitch kind"),
         };
 
-        let palindex1: usize = attributes.get("palindex1").unwrap().parse()?;
-        let palindex2: usize = attributes.get("palindex2").unwrap().parse()?;
+        let palindex1: u8 = attributes.get("palindex1").unwrap().parse()?;
+        let palindex2: u8 = attributes.get("palindex2").unwrap().parse()?;
 
         if palindex1 != 0 {
           let (x, y) = if direction_value == 1 { (x, y + 0.5) } else { (x, y) };
@@ -501,7 +501,7 @@ fn read_line_stitches<R: io::BufRead>(reader: &mut Reader<R>) -> Result<Vec<Line
             attributes.get("y1").unwrap().parse()?,
             attributes.get("y2").unwrap().parse()?,
           ),
-          palindex: attributes.get("palindex").unwrap().parse::<usize>()? - 1,
+          palindex: attributes.get("palindex").unwrap().parse::<u8>()? - 1,
           kind: attributes.get("objecttype").unwrap().parse()?,
         });
       }
@@ -549,7 +549,7 @@ fn read_ornaments<R: io::BufRead>(reader: &mut Reader<R>) -> Result<(Vec<FullSti
 
         let x = attributes.get("x1").unwrap().parse()?;
         let y = attributes.get("y1").unwrap().parse()?;
-        let palindex = attributes.get("palindex").unwrap().parse::<usize>()? - 1;
+        let palindex: u8 = attributes.get("palindex").unwrap().parse::<u8>()? - 1;
         let kind = attributes.get("objecttype").unwrap();
 
         // Yes, the Ursa Software's OXS format uses the "quarter" stitch for petites.

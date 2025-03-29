@@ -703,7 +703,7 @@ fn map_stitches_data_into_stitches(
       fullstitches.push(FullStitch {
         x,
         y,
-        palindex: stitch_buffer[2] as usize,
+        palindex: stitch_buffer[2],
         kind: FullStitchKind::Full,
       });
       continue;
@@ -723,7 +723,7 @@ fn map_stitches_data_into_stitches(
         fullstitches.push(FullStitch {
           x,
           y,
-          palindex: small_stitch_buffer[palindex_index] as usize,
+          palindex: small_stitch_buffer[palindex_index],
           kind: FullStitchKind::Petite,
         })
       }
@@ -752,7 +752,7 @@ fn map_stitches_data_into_stitches(
         partstitches.push(PartStitch {
           x,
           y,
-          palindex: small_stitch_buffer[palindex_index] as usize,
+          palindex: small_stitch_buffer[palindex_index],
           direction,
           kind,
         })
@@ -888,7 +888,7 @@ fn read_joints<R: Read + Seek>(reader: &mut R, joints_count: u16) -> io::Result<
         let x = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
         let y = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
         reader.seek_relative(4)?;
-        let palindex = reader.read_u8()? as usize;
+        let palindex = reader.read_u8()?;
         reader.seek_relative(1)?;
         nodestitches.push(NodeStitch {
           x,
@@ -905,7 +905,7 @@ fn read_joints<R: Read + Seek>(reader: &mut R, joints_count: u16) -> io::Result<
         let y1 = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
         let x2 = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
         let y2 = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
-        let palindex = reader.read_u8()? as usize;
+        let palindex = reader.read_u8()?;
         reader.seek_relative(1)?;
         let kind = if joint_kind == XsdJointKind::Back {
           LineStitchKind::Back
@@ -938,7 +938,7 @@ fn read_joints<R: Read + Seek>(reader: &mut R, joints_count: u16) -> io::Result<
 
       XsdJointKind::Special => {
         reader.seek_relative(2)?;
-        let palindex = reader.read_u8()? as usize;
+        let palindex = reader.read_u8()?;
         reader.seek_relative(4)?;
         let x = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
         let y = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
@@ -973,7 +973,7 @@ fn read_joints<R: Read + Seek>(reader: &mut R, joints_count: u16) -> io::Result<
           (rotation, flip)
         };
         reader.seek_relative(2)?;
-        let modindex = reader.read_u16::<LittleEndian>()? as usize;
+        let modindex = reader.read_u16::<LittleEndian>()? as u8;
         specialstitches.push(SpecialStitch {
           x,
           y,
@@ -988,7 +988,7 @@ fn read_joints<R: Read + Seek>(reader: &mut R, joints_count: u16) -> io::Result<
         reader.seek_relative(2)?;
         let x = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
         let y = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
-        let palindex = reader.read_u8()? as usize;
+        let palindex = reader.read_u8()?;
         reader.seek_relative(1)?;
         let rotated = matches!(reader.read_u16::<LittleEndian>()?, 90 | 270);
         nodestitches.push(NodeStitch {
