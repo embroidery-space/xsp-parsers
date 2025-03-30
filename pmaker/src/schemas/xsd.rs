@@ -130,7 +130,7 @@ pub struct Symbols {
 pub struct FullStitch {
   pub x: f32,
   pub y: f32,
-  pub palindex: usize,
+  pub palindex: u8,
   pub kind: FullStitchKind,
 }
 
@@ -144,7 +144,7 @@ pub enum FullStitchKind {
 pub struct PartStitch {
   pub x: f32,
   pub y: f32,
-  pub palindex: usize,
+  pub palindex: u8,
   pub direction: PartStitchDirection,
   pub kind: PartStitchKind,
 }
@@ -165,7 +165,7 @@ pub enum PartStitchKind {
 pub struct LineStitch {
   pub x: (f32, f32),
   pub y: (f32, f32),
-  pub palindex: usize,
+  pub palindex: u8,
   pub kind: LineStitchKind,
 }
 
@@ -180,7 +180,7 @@ pub struct NodeStitch {
   pub x: f32,
   pub y: f32,
   pub rotated: bool,
-  pub palindex: usize,
+  pub palindex: u8,
   pub kind: NodeStitchKind,
 }
 
@@ -196,8 +196,8 @@ pub struct SpecialStitch {
   pub y: f32,
   pub rotation: u16,
   pub flip: (bool, bool),
-  pub palindex: usize,
-  pub modindex: usize,
+  pub palindex: u8,
+  pub modindex: u8,
 }
 
 #[derive(Debug, Default, PartialEq)]
