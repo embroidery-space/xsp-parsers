@@ -200,10 +200,12 @@ pub struct SpecialStitch {
   pub modindex: usize,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 pub struct SpecialStitchModel {
   pub unique_name: String,
   pub name: String,
+  pub width: f32,
+  pub height: f32,
   pub linestitches: Vec<LineStitch>,
   pub nodestitches: Vec<NodeStitch>,
   pub curvedstitches: Vec<CurvedStitch>,

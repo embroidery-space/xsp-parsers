@@ -485,6 +485,8 @@ fn reads_special_stitch_models() {
     SpecialStitchModel {
       unique_name: String::from("Lasy Daisy Over 2x1"),
       name: String::from(""),
+      width: 2.0,
+      height: 2.0,
       nodestitches: vec![],
       linestitches: vec![],
       curvedstitches: vec![CurvedStitch {
@@ -502,6 +504,8 @@ fn reads_special_stitch_models() {
     SpecialStitchModel {
       unique_name: String::from("Rhodes Heart - over 6"),
       name: String::from("Rhodes Heart"),
+      width: 3.0,
+      height: 2.5,
       nodestitches: vec![],
       linestitches: vec![
         LineStitch {

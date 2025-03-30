@@ -798,9 +798,7 @@ fn read_special_stitch_models<R: Read + Seek>(reader: &mut R) -> io::Result<Vec<
     let mut special_stitch_model = SpecialStitchModel {
       unique_name: reader.read_cstring(SPECIAL_STITCH_NAME_LENGTH)?,
       name: reader.read_cstring(SPECIAL_STITCH_NAME_LENGTH)?,
-      linestitches: Vec::new(),
-      nodestitches: Vec::new(),
-      curvedstitches: Vec::new(),
+      ..Default::default()
     };
     let mut shift = (0.0, 0.0);
     reader.seek_relative(2)?;
@@ -812,7 +810,8 @@ fn read_special_stitch_models<R: Read + Seek>(reader: &mut R) -> io::Result<Vec<
           reader.read_u16::<LittleEndian>()? as f32 / 2.0,
           reader.read_u16::<LittleEndian>()? as f32 / 2.0,
         );
-        reader.seek_relative(4)?;
+        special_stitch_model.width = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
+        special_stitch_model.height = reader.read_u16::<LittleEndian>()? as f32 / 2.0;
       } else {
         reader.seek_relative(10)?;
       }
