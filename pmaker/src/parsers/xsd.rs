@@ -61,10 +61,16 @@ pub fn parse_xsd_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Patt
 
   let signature = read_signature(&mut cursor)?;
   if signature != VALID_SIGNATURE {
-    anyhow::bail!("The signature of Pattern Maker v4 is incorrect");
+    anyhow::bail!(
+      "The signature of Pattern Maker v4 is incorrect! Expected: {VALID_SIGNATURE:#06X}, found: {signature:#06X}"
+    );
   }
+  cursor.seek_relative(4)?;
 
-  cursor.seek_relative(739)?; // Skip the unknown data.
+  let version = read_pmaker_version(&mut cursor)?;
+  log::debug!("Pattern Maker version: {version}",);
+
+  cursor.seek_relative(727)?; // Skip the unknown data.
 
   let pattern_width = cursor.read_u16::<LittleEndian>()?;
   let pattern_height = cursor.read_u16::<LittleEndian>()?;
@@ -139,14 +145,32 @@ pub fn parse_xsd_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Patt
   })
 }
 
-/// Reads the signature of the XSD file.
 fn read_signature<R: Read>(reader: &mut R) -> io::Result<u16> {
   let signature = reader.read_u16::<LittleEndian>()?;
   Ok(signature)
 }
 
+fn read_pmaker_version<R: Read>(reader: &mut R) -> io::Result<PatternMakerVersion> {
+  Ok(PatternMakerVersion((
+    reader.read_u16::<LittleEndian>()?,
+    reader.read_u16::<LittleEndian>()?,
+    reader.read_u16::<LittleEndian>()?,
+    reader.read_u16::<LittleEndian>()?,
+  )))
+}
+
+struct PatternMakerVersion((u16, u16, u16, u16));
+
+impl std::fmt::Display for PatternMakerVersion {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}.{}.{}.{}", self.0.1, self.0.0, self.0.3, self.0.2)
+  }
+}
+
 /// Reads the color palette of the pattern.
 fn read_palette<R: Read + Seek>(reader: &mut R) -> io::Result<Vec<PaletteItem>> {
+  log::trace!("Reading palette");
+
   let palette_size: usize = reader.read_u16::<LittleEndian>()?.into();
   let mut palette = Vec::with_capacity(palette_size);
 
@@ -255,6 +279,8 @@ fn read_palette_item_strands<R: Read>(reader: &mut R) -> io::Result<StitchStrand
 }
 
 fn read_formats<R: Read + Seek>(reader: &mut R, palette_size: usize) -> io::Result<Vec<Formats>> {
+  log::trace!("Reading formats");
+
   let symbol_formats = read_symbol_formats(reader, palette_size)?;
   let back_stitch_formats = read_line_formats(reader, palette_size)?;
   reader.seek_relative((FORMAT_LENGTH * 4) as i64)?; // Skip unknown formats.
@@ -369,6 +395,8 @@ fn read_font_formats<R: Read + Seek>(reader: &mut R, palette_size: usize) -> io:
 }
 
 fn read_symbols<R: Read>(reader: &mut R, palette_size: usize) -> io::Result<Vec<Symbols>> {
+  log::trace!("Reading symbols");
+
   fn map_symbol(value: u16) -> Option<u16> {
     if value == 0xFFFF { None } else { Some(value) }
   }
@@ -389,6 +417,8 @@ fn read_symbols<R: Read>(reader: &mut R, palette_size: usize) -> io::Result<Vec<
 }
 
 fn read_pattern_and_print_settings<R: Read + Seek>(reader: &mut R) -> io::Result<(PatternSettings, PrintSettings)> {
+  log::trace!("Reading pattern and print settings");
+
   let default_stitch_font = reader.read_cstring(FONT_NAME_LENGTH)?;
   reader.seek_relative(20)?;
 
@@ -449,6 +479,8 @@ fn read_pattern_and_print_settings<R: Read + Seek>(reader: &mut R) -> io::Result
 }
 
 fn read_grid<R: Read + Seek>(reader: &mut R) -> io::Result<Grid> {
+  log::trace!("Reading grid");
+
   fn read_grid_line_style<R: Read + Seek>(reader: &mut R) -> io::Result<GridLineStyle> {
     let thickness = (reader.read_u16::<LittleEndian>()? * 72) as f32 / 1000.0; // Convert to points.
     reader.seek_relative(2)?;
@@ -474,8 +506,8 @@ fn read_grid<R: Read + Seek>(reader: &mut R) -> io::Result<Grid> {
   })
 }
 
-/// Reads the necessarry pattern information.
 fn read_pattern_info<R: Read + Seek>(reader: &mut R) -> io::Result<PatternInfo> {
+  log::trace!("Reading pattern info");
   Ok(PatternInfo {
     title: reader.read_cstring(PATTERN_NAME_LENGTH)?,
     author: reader.read_cstring(AUTHOR_NAME_LENGTH)?,
@@ -486,6 +518,8 @@ fn read_pattern_info<R: Read + Seek>(reader: &mut R) -> io::Result<PatternInfo> 
 }
 
 fn read_stitch_settings<R: Read + Seek>(reader: &mut R) -> io::Result<StitchSettings> {
+  log::trace!("Reading stitch settings");
+
   let default_strands = StitchStrands {
     full: reader.read_u16::<LittleEndian>()? as u8,
     half: reader.read_u16::<LittleEndian>()? as u8,
@@ -528,6 +562,7 @@ fn read_stitch_settings<R: Read + Seek>(reader: &mut R) -> io::Result<StitchSett
 }
 
 fn read_symbol_settings<R: Read + Seek>(reader: &mut R) -> io::Result<SymbolSettings> {
+  log::trace!("Reading symbol settings");
   Ok(SymbolSettings {
     screen_spacing: (reader.read_u16::<LittleEndian>()?, reader.read_u16::<LittleEndian>()?),
     printer_spacing: (reader.read_u16::<LittleEndian>()?, reader.read_u16::<LittleEndian>()?),
@@ -550,13 +585,13 @@ fn read_symbol_settings<R: Read + Seek>(reader: &mut R) -> io::Result<SymbolSett
   })
 }
 
-/// Reads the stitches of the pattern.
 fn read_stitches<R: Read>(
   reader: &mut R,
   coord_factor: usize,
   total_stitches_count: usize,
   small_stitches_count: usize,
 ) -> io::Result<(Vec<FullStitch>, Vec<PartStitch>)> {
+  log::trace!("Reading stitches");
   let stitches_data = read_stitches_data(reader, total_stitches_count)?;
   let small_stitch_buffers = read_small_stitch_buffers(reader, small_stitches_count)?;
   let stitches = map_stitches_data_into_stitches(stitches_data, small_stitch_buffers, coord_factor)?;
@@ -566,7 +601,13 @@ fn read_stitches<R: Read>(
 /// Reads the bytes buffer that contains the decoded stitches data.
 fn read_stitches_data<R: Read>(reader: &mut R, total_stitches_count: usize) -> io::Result<Vec<i32>> {
   let mut stitches_data = Vec::with_capacity(total_stitches_count);
-  let mut xsd_random_numbers = read_xsd_random_numbers(reader)?;
+  let mut xsd_random_numbers = {
+    let mut xsd_random_numbers = [0; 4];
+    for number in &mut xsd_random_numbers {
+      *number = reader.read_i32::<LittleEndian>()?;
+    }
+    xsd_random_numbers
+  };
   let (mut decoding_key, decoding_numbers) = reproduce_decoding_values(&xsd_random_numbers)?;
   let mut decoding_number_index = 0;
   let mut stitch_index = 0;
@@ -611,15 +652,6 @@ fn read_stitches_data<R: Read>(reader: &mut R, total_stitches_count: usize) -> i
   }
 
   Ok(stitches_data)
-}
-
-/// Reads the random numbers that are necessarry for decoding the stitches data.
-fn read_xsd_random_numbers<R: Read>(reader: &mut R) -> io::Result<[i32; 4]> {
-  let mut xsd_random_numbers = [0; 4];
-  for number in &mut xsd_random_numbers {
-    *number = reader.read_i32::<LittleEndian>()?;
-  }
-  Ok(xsd_random_numbers)
 }
 
 /// Reproduces the decoding values that are used for decoding the stitches data.
@@ -776,8 +808,9 @@ fn adjust_small_stitch_coors(x: f32, y: f32, kind: XsdSmallStitchKind) -> io::Re
   }
 }
 
-/// Reads the special stitch models.
 fn read_special_stitch_models<R: Read + Seek>(reader: &mut R) -> io::Result<Vec<SpecialStitchModel>> {
+  log::trace!("Reading special stitch models");
+
   reader.seek_relative(2)?;
   let special_stith_models_count = reader.read_u16::<LittleEndian>()? as usize;
   let mut special_stitch_models = Vec::with_capacity(special_stith_models_count);
@@ -872,8 +905,10 @@ impl From<u16> for XsdJointKind {
 
 type Joints = (Vec<LineStitch>, Vec<NodeStitch>, Vec<SpecialStitch>, Vec<CurvedStitch>);
 
-/// Reads the french knots, beads, back, straight and special stitches and curvedstitches that used in the pattern.
+/// Reads the french knots, beads, back, straight and special stitches and curved stitches used in the pattern.
 fn read_joints<R: Read + Seek>(reader: &mut R, joints_count: u16) -> io::Result<Joints> {
+  log::trace!("Reading joints");
+
   let mut linestitches = Vec::new();
   let mut nodestitches = Vec::new();
   let mut specialstitches = Vec::new();
