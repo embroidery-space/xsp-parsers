@@ -190,7 +190,7 @@ fn read_palette<R: Read + Seek>(reader: &mut R) -> io::Result<Vec<PaletteItem>> 
 
 // TODO: Implement reading the palette item notes.
 /// Reads a single palette item.
-fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> {
+pub fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> {
   /// Reads the blend colors of the palette item.
   fn read_blends<R: Read + Seek>(reader: &mut R) -> io::Result<Option<Vec<Blend>>> {
     let blends_count: usize = reader.read_u16::<LittleEndian>()?.into();
@@ -199,9 +199,11 @@ fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> 
     // Read blends.
     for _ in 0..blends_count {
       let brand_id = reader.read_u8()?;
-      let brand_id = if brand_id == 255 { 0 } else { brand_id };
       blends.push(Blend {
-        brand: PM_THREAD_BRANDS.get(&brand_id).unwrap().to_owned(),
+        brand: PM_THREAD_BRANDS
+          .get(&brand_id)
+          .unwrap_or(&String::from("Unknown"))
+          .to_owned(),
         number: reader.read_cstring(COLOR_NUMBER_LENGTH)?,
         strands: 0, // The actual value will be set when calling `read_blend_strands`.
       });
@@ -219,7 +221,10 @@ fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> 
 
   reader.seek_relative(2)?;
   let brand_id = reader.read_u8()?;
-  let brand = PM_THREAD_BRANDS.get(&brand_id).unwrap().to_owned();
+  let brand = PM_THREAD_BRANDS
+    .get(&brand_id)
+    .unwrap_or(&String::from("Unknown"))
+    .to_owned();
   let number = reader.read_cstring(COLOR_NUMBER_LENGTH)?;
   let name = reader.read_cstring(COLOR_NAME_LENGTH)?;
   let color = reader.read_hex_color()?;
