@@ -9,8 +9,8 @@ use std::sync::LazyLock;
 use anyhow::Result;
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::ReadXsdExt as _;
-use crate::schemas::xsd::*;
+use crate::pmaker::schemas::xsd::*;
+use crate::utils::read::ReadXspExt as _;
 
 #[cfg(test)]
 #[path = "xsd.test.rs"]
@@ -55,7 +55,9 @@ const PAGE_HEADER_AND_FOOTER_LENGTH: usize = 119;
 
 const SPECIAL_STITCH_NAME_LENGTH: usize = 255;
 
-pub fn parse_xsd_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Pattern> {
+pub fn parse_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Pattern> {
+  log::debug!("Parsing XSD pattern");
+
   let buf = std::fs::read(file_path.as_ref())?;
   let mut cursor = std::io::Cursor::new(buf);
 
@@ -118,6 +120,7 @@ pub fn parse_xsd_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Patt
 
   let (linestitches, nodestitches, specialstitches, _curvedstitches) = read_joints(&mut cursor, joints_count)?;
 
+  log::debug!("Pattern parsed");
   Ok(Pattern {
     info: pattern_info,
     fabric: Fabric {
@@ -190,7 +193,7 @@ fn read_palette<R: Read + Seek>(reader: &mut R) -> io::Result<Vec<PaletteItem>> 
 
 // TODO: Implement reading the palette item notes.
 /// Reads a single palette item.
-fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> {
+pub fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> {
   /// Reads the blend colors of the palette item.
   fn read_blends<R: Read + Seek>(reader: &mut R) -> io::Result<Option<Vec<Blend>>> {
     let blends_count: usize = reader.read_u16::<LittleEndian>()?.into();
@@ -199,9 +202,11 @@ fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> 
     // Read blends.
     for _ in 0..blends_count {
       let brand_id = reader.read_u8()?;
-      let brand_id = if brand_id == 255 { 0 } else { brand_id };
       blends.push(Blend {
-        brand: PM_THREAD_BRANDS.get(&brand_id).unwrap().to_owned(),
+        brand: PM_THREAD_BRANDS
+          .get(&brand_id)
+          .unwrap_or(&String::from("Unknown"))
+          .to_owned(),
         number: reader.read_cstring(COLOR_NUMBER_LENGTH)?,
         strands: 0, // The actual value will be set when calling `read_blend_strands`.
       });
@@ -219,7 +224,10 @@ fn read_palette_item<R: Read + Seek>(reader: &mut R) -> io::Result<PaletteItem> 
 
   reader.seek_relative(2)?;
   let brand_id = reader.read_u8()?;
-  let brand = PM_THREAD_BRANDS.get(&brand_id).unwrap().to_owned();
+  let brand = PM_THREAD_BRANDS
+    .get(&brand_id)
+    .unwrap_or(&String::from("Unknown"))
+    .to_owned();
   let number = reader.read_cstring(COLOR_NUMBER_LENGTH)?;
   let name = reader.read_cstring(COLOR_NAME_LENGTH)?;
   let color = reader.read_hex_color()?;
