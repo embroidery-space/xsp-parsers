@@ -9,8 +9,8 @@ use std::sync::LazyLock;
 use anyhow::Result;
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::ReadXsdExt as _;
-use crate::schemas::xsd::*;
+use crate::pmaker::schemas::xsd::*;
+use crate::utils::read::ReadXspExt as _;
 
 #[cfg(test)]
 #[path = "xsd.test.rs"]
@@ -55,7 +55,9 @@ const PAGE_HEADER_AND_FOOTER_LENGTH: usize = 119;
 
 const SPECIAL_STITCH_NAME_LENGTH: usize = 255;
 
-pub fn parse_xsd_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Pattern> {
+pub fn parse_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Pattern> {
+  log::debug!("Parsing XSD pattern");
+
   let buf = std::fs::read(file_path.as_ref())?;
   let mut cursor = std::io::Cursor::new(buf);
 
@@ -118,6 +120,7 @@ pub fn parse_xsd_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Patt
 
   let (linestitches, nodestitches, specialstitches, _curvedstitches) = read_joints(&mut cursor, joints_count)?;
 
+  log::debug!("Pattern parsed");
   Ok(Pattern {
     info: pattern_info,
     fabric: Fabric {

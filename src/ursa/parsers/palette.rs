@@ -1,12 +1,13 @@
 use anyhow::Result;
 
-use crate::schemas::palette::PaletteItem;
+use crate::ursa::schemas::palette::PaletteItem;
 
 #[cfg(test)]
 #[path = "palette.test.rs"]
 mod tests;
 
 pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> Result<Vec<PaletteItem>> {
+  log::debug!("Parsing Ursa's palette file");
   let content = std::fs::read_to_string(file_path.as_ref())?;
 
   let mut palette_items = Vec::new();
@@ -16,6 +17,7 @@ pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> Result<Vec<Pale
     }
   }
 
+  log::debug!("Palette parsed");
   Ok(palette_items)
 }
 

@@ -3,13 +3,15 @@ use std::io::{self, Read};
 use anyhow::Result;
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::ReadXsdExt as _;
-use crate::schemas::palette::PaletteItem;
+use crate::utils::read::ReadXspExt as _;
+use crate::xspro::schemas::palette::PaletteItem;
 
 const PALETTE_BRAND_LENGTH: usize = 28;
 const COLOR_NUMBER_LENGTH: usize = 28;
 
 pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> Result<Vec<PaletteItem>> {
+  log::debug!("Parsing XSPro's palette file");
+
   let file_path = file_path.as_ref();
   let filename = file_path.file_name().map(|s| s.to_string_lossy().to_string());
 
@@ -27,6 +29,7 @@ pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> Result<Vec<Pale
     )?);
   }
 
+  log::debug!("Palette parsed");
   Ok(palette)
 }
 
