@@ -11,7 +11,7 @@ pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> Result<Vec<Pale
 
   let mut palette_items = Vec::new();
   for line in content.replace("\r\n", "\n").replace("\r", "\n").lines() {
-    if let Some(line) = parse_palette_item(&line)? {
+    if let Some(line) = parse_palette_item(line)? {
       palette_items.push(line);
     }
   }

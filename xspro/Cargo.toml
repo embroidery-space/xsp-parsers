@@ -1,0 +1,10 @@
+[package]
+name = "xspro"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+byteorder = "1.5.0"
+encoding_rs = "0.8.35"
+hex = "0.4.3"

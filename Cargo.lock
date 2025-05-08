@@ -81,3 +81,13 @@ version = "0.0.0"
 dependencies = [
  "pmaker",
 ]
+
+[[package]]
+name = "xspro"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "byteorder",
+ "encoding_rs",
+ "hex",
+]
