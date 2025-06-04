@@ -1,6 +1,5 @@
 use std::io::{self, Read};
 
-use anyhow::Result;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::utils::read::ReadXspExt as _;
@@ -9,7 +8,7 @@ use crate::xspro::schemas::palette::PaletteItem;
 const PALETTE_BRAND_LENGTH: usize = 28;
 const COLOR_NUMBER_LENGTH: usize = 28;
 
-pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> Result<Vec<PaletteItem>> {
+pub fn parse_palette<P: AsRef<std::path::Path>>(file_path: P) -> io::Result<Vec<PaletteItem>> {
   log::debug!("Parsing XSPro's palette file");
 
   let file_path = file_path.as_ref();

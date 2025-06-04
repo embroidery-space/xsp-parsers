@@ -1,7 +1,7 @@
-use anyhow::Result;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::pmaker::PaletteItem;
+use crate::pmaker::error::{PmakerError, Result};
 use crate::pmaker::parsers::xsd::read_palette_item;
 
 enum PatternMakerPalette {
@@ -10,16 +10,16 @@ enum PatternMakerPalette {
 }
 
 impl TryFrom<Option<&std::ffi::OsStr>> for PatternMakerPalette {
-  type Error = anyhow::Error;
+  type Error = PmakerError;
 
   fn try_from(value: Option<&std::ffi::OsStr>) -> Result<Self> {
     match value {
       Some(os_str) => match os_str.to_str() {
         Some("Master") | Some("master") => Ok(PatternMakerPalette::Master),
         Some("User") | Some("user") => Ok(PatternMakerPalette::User),
-        _ => Err(anyhow::anyhow!("Invalid palette type")),
+        _ => Err(PmakerError::InvalidPaletteType(os_str.to_string_lossy().to_string())),
       },
-      None => Err(anyhow::anyhow!("No palette type provided")),
+      None => Err(PmakerError::InvalidPaletteType("No palette type provided".into())),
     }
   }
 }
