@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use super::ReadXsdExt as _;
+use super::ReadXspExt as _;
 
 #[test]
 fn reads_cstring() {
