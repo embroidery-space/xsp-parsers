@@ -6,9 +6,9 @@
 use std::io::{self, Read, Seek, SeekFrom};
 use std::sync::LazyLock;
 
-use anyhow::Result;
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use crate::pmaker::error::{PmakerError, Result};
 use crate::pmaker::schemas::xsd::*;
 use crate::utils::read::ReadXspExt as _;
 
@@ -63,9 +63,10 @@ pub fn parse_pattern<P: AsRef<std::path::Path>>(file_path: P) -> Result<Pattern>
 
   let signature = read_signature(&mut cursor)?;
   if signature != VALID_SIGNATURE {
-    anyhow::bail!(
-      "The signature of Pattern Maker v4 is incorrect! Expected: {VALID_SIGNATURE:#06X}, found: {signature:#06X}"
-    );
+    return Err(PmakerError::InvalidSignature {
+      expected: VALID_SIGNATURE,
+      found: signature,
+    });
   }
   cursor.seek_relative(4)?;
 
