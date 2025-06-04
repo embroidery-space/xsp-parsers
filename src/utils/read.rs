@@ -4,8 +4,8 @@ use std::io;
 #[path = "read.test.rs"]
 mod tests;
 
-/// Provides additional methods for reading XSD data.
-pub trait ReadXsdExt: io::Read + byteorder::ReadBytesExt {
+/// Provides additional methods for reading data in cross-stitch patterns.
+pub trait ReadXspExt: io::Read + byteorder::ReadBytesExt {
   /// Reads a C-style string with a specified length.
   /// The string can be in UTF-8 or CP1251 encoding.
   fn read_cstring(&mut self, length: usize) -> io::Result<String> {
@@ -37,5 +37,5 @@ pub trait ReadXsdExt: io::Read + byteorder::ReadBytesExt {
   }
 }
 
-/// All types that implement `Read` get methods defined in `ReadXsdExt`.
-impl<R: io::Read + ?Sized> ReadXsdExt for R {}
+/// All types that implement `Read` get methods defined in `ReadXspExt`.
+impl<R: io::Read + ?Sized> ReadXspExt for R {}
